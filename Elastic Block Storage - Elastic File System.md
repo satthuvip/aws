@@ -46,7 +46,7 @@ Root Volume = Chứa hệ điều hành
 Data volume = Chứa dữ liệu ứng dụng
 ```
 
-Nên tách riêng root và data volume để dễ backup, resize và migrate.
+Nên tách riêng root và data volume để dễ backup, resize và migrate.
 
 EBS Snapshot là bản sao lưu của EBS volume, được lưu trong S3 phía backend của AWS. Không truy câp snapshot như một bject bình thường, nhưng AWS dùng S3 để lưu trữ nó.
 
@@ -58,7 +58,7 @@ Dùng snapshot để:
 - Copy volume sang region khác
 - Tạo AMI
 
-Snapshot là incremental backup, nghĩa là sau snapshot đầu tiên, các lần sau chỉ lưu phần dữ liệu thay đổi.
+Snapshot là incremental backup, nghĩa là sau snapshot đầu tiên, các lần sau chỉ lưu phần dữ liệu thay đổi.
 
 
 
@@ -70,7 +70,7 @@ Muốn chuyển sang AZ khác cần:
 EBS Volume → Snapshot → Create Volume ở AZ khác
 ```
 
-  
+  
 
 Data Lifecycle Manager thường gọi là Amazon DLM hoặc EBS data lifecycle manager
 
@@ -146,7 +146,7 @@ EFS có 2 performance mode chính:
 - General Purpose: Dùng hầu hết cho workload
 - Max I/O: Dùng cho workload rất lớn, nhiều client cùng truy cập
 
-Throughput mode
+Throughput mode
 
 EFS có các chế độ throughput như:
 
@@ -175,6 +175,62 @@ EFS hỗ trợ nhiều lớp bảo mật:
 
 AWS storage gateway
 
-Đây là dịch vụ giúp kết nối hệ thống lưu trưc on-premises với lưu trữ trên cloud.
+Đây là dịch vụ giúp kết nối hệ thống lưu trữ on-premises với lưu trữ trên cloud.
 
-Storage Gateway = Cầu nối giữa data center và aws storage
+Storage Gateway = Cầu nối giữa data center và aws storage
+
+Strorage Gateway thường được triển khai như một appliance/gateway ở môi trường on-premises, có thể chạy trên:
+
+- VMware ESXi
+- Microsoft Hyper-V
+- Linux KVM
+
+Nó có local cache để giữ dữ liệu hay truy cập gần đây, giúp ứng dụng trên on-premises truy cập nhanh hơn.
+
+AWS cũng mô tả gateway dùng cache local cho dữ liệu đọc/ghi gần đây và đồng bộ dữ liệu thay đổi lên aws.
+
+Các loại AWS Storage Gateway chính:
+
+- Amazon S3 File Gateway
+- Amazon FSx File Gateway
+- Volume Gateway
+- Tape Gateway
+
+S3 file Gate way: cho phép server local truy cập dữ liệu theo dạng file share, nhưng dữ liệu thật được lưu trong amazon S3
+
+Nó hỗ trợ giao thức file như:
+
+- NFS
+- SMB
+
+FSx file Gateway: dùng cho môi trường Windows file share, kết nối đến FSx for window file server
+
+FSx File Gateway cung cấp truy cập on-premises tới cloud file shares được quản lý bởi Amazon FSx for window file server.
+
+Volume Gateway: Cung cấp storage dưới dạng block storage cho server on-premises thông qua giao thức iSCSI.
+
+Server local nhìn thấy nó như một ổ đĩa block, còn dữ liệu được bảo vệ/lưu trên AWS.
+
+Volume Gateway có 2 kiểu quan trọng:
+
+- Cached Volume:
+  - Dữ liệu chính nằm trên AWS
+  - Dữ liệu hay dùng được cache ở local
+- Stored Volume: 
+  - Dữ liệu chính nằm ở local
+  - AWS dùng để backup snapshot
+
+Tape Gateway: Dùng để thay thế hệ thống băng từ backup vật lý.
+
+
+
+So sánh cách loại storage Gateway
+
+| Loại Gateway         | Giao thức | AWS storage phía sau        | Dùng cho                         |
+| -------------------- | --------- | --------------------------- | -------------------------------- |
+| **S3 File Gateway**  | NFS/SMB   | Amazon S3                   | File backup, data lake, file app |
+| **FSx File Gateway** | SMB       | FSx for Windows File Server | Windows file share               |
+| **Volume Gateway**   | iSCSI     | S3/EBS snapshots            | Block storage, backup volume     |
+| **Tape Gateway**     | iSCSI VTL | S3/Glacier                  | Tape backup/archive              |
+
+ 
